@@ -5,17 +5,59 @@ bool Game::running()
 	return isRunning;
 }
 
-Game::Game()
+Game::Game(const char* Title, int xpos, int ypos, int width, int height, bool fullscreen)
 {
+	this->width = width;
+	this->height = height;
+	int flags = 0;
+	if (fullscreen) {
+		flags = SDL_WINDOW_FULLSCREEN;
+	}
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		std::cerr << "SDL Init failed";
+		exit(1);
+	}
+	std::cout << "Subsystems Initialized";
+
+	window = SDL_CreateWindow(Title, xpos, ypos, width, height, flags);
+
+	if (!window) {
+		std::cerr << "SDL_Window Init failed";
+		exit(2);
+	}
+	std::cout << "Window created";
+
+	renderer = SDL_CreateRenderer(window, -1, 0);
+	if (!renderer) {
+		std::cerr << "SDL Renderer Init failed";
+		exit(3);
+	}
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	std::cout << "Renderer created";
+	isRunning = true;
+
+
+	texApple = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_APPLE));
+	texBody = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_BODY));
+	texHead = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_HEAD));
+	texGameOver = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_GAME_OVER));
+	texNumbersGreen = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_NUMBERS_GREEN));
+	texNumbersRed = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_NUMBERS_RED));
+
+
+
 	this->reset();
 }
 
 Game::~Game()
 {
-	SDL_FreeSurface(surfaceHead);
-	SDL_FreeSurface(surfaceBody);
-	SDL_FreeSurface(surfaceApple);
 	delete snake;
+	SDL_DestroyTexture(texApple);
+	SDL_DestroyTexture(texBody);
+	SDL_DestroyTexture(texHead);
+	SDL_DestroyTexture(texGameOver);
+	SDL_DestroyTexture(texNumbersGreen);
+	SDL_DestroyTexture(texNumbersRed);
 
 }
 
@@ -33,41 +75,7 @@ void Game::reset() {
 	lastUpdateTick = SDL_GetTicks();
 }
 
-void Game::init(const char* Title, int xpos, int ypos, int width, int height, bool fullscreen)
-{
-	this->width = width;
-	this->height = height;
-	int flags = 0;
-	if (fullscreen) {
-		flags = SDL_WINDOW_FULLSCREEN;
-	}
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		std::cerr << "SDL Init failed";
-		exit(1);
-	}
-	std::cout << "Subsystems Initialized";
 
-	window = SDL_CreateWindow(Title, xpos, ypos, width, height, flags);
-	
-	if (!window) {
-		std::cerr << "SDL_Window Init failed";
-		exit(2);
-	}
-	std::cout << "Window created";
-
-	renderer = SDL_CreateRenderer(window, -1, 0);
-	if (!renderer) {
-		std::cerr << "SDL Renderer Init failed";
-		exit(3);
-	}
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	std::cout << "Renderer created";
-	isRunning = true;
-
-//	SDL_Surface* tmpSurface = IMG_Load("res/head.png");
-//	textures.push_back(SDL_CreateTextureFromSurface(renderer, tmpSurface));
-//	SDL_FreeSurface(tmpSurface);
-}
 
 void Game::handleEvents()
 {
@@ -153,15 +161,15 @@ void Game::update()
 void Game::createTextures()
 {
 	
-	textures.push_back({ snake->Elements[0].x ,snake->Elements[0].y,SDL_CreateTextureFromSurface(renderer,surfaceHead) });
+	textures.push_back({ snake->Elements[0].x ,snake->Elements[0].y,texHead });
 	for (int i = 1; i < snake->Elements.size();i++) {
-		textures.push_back({ snake->Elements[i].x ,snake->Elements[i].y,SDL_CreateTextureFromSurface(renderer,surfaceBody) });
+		textures.push_back({ snake->Elements[i].x ,snake->Elements[i].y,texBody });
 	}
 	for (Eatable* e : eatables) {
 		switch (e->getEatableType())
 		{
 		case EatableType::APPLE:
-			textures.push_back({ e->getX(),e->getY(), SDL_CreateTextureFromSurface(renderer,surfaceApple) });
+			textures.push_back({ e->getX(),e->getY(),texApple });
 			break;
 		}
 	}
@@ -195,7 +203,6 @@ void Game::render()
 		}
 		//SDL_RenderCopy(renderer, texture.texture, NULL, &targetRect);
 		SDL_RenderCopyEx(renderer, texture.texture, NULL, &targetRect, angle, NULL, SDL_FLIP_NONE);
-		SDL_DestroyTexture(texture.texture);
 	//	delete texture;
 	}
 	textures.clear();
@@ -204,13 +211,11 @@ void Game::render()
 	renderScore(highscore, width / 10, height / 20, RenderDirection::LEFT_TO_RIGHT, NumberRenderColors::GREEN);
 
 	if (gameOver) {
-		auto texGameOver = SDL_CreateTextureFromSurface(renderer, surfaceGameOver);
 		targetRect.x = width / 2 - 118;
 		targetRect.y = height / 2 - 118;
 		targetRect.w = 236;
 		targetRect.h = 236;
 		SDL_RenderCopy(renderer, texGameOver, NULL, &targetRect);
-		SDL_DestroyTexture(texGameOver);
 	}
 		
 
@@ -222,16 +227,16 @@ void Game::render()
 }
 void Game::renderScore(int displayScore,int targetX,int targetY, RenderDirection direction,NumberRenderColors color) { //TODO: leftToRight needs implementation
 
-	SDL_Surface* numSurface=nullptr;
+	SDL_Texture* texNum=nullptr;
 	switch (color) {
 		case NumberRenderColors::GREEN:
-			numSurface = surfaceNumbersGreen;
+			texNum = texNumbersGreen;
 			break;
 		case NumberRenderColors::RED:
-			numSurface = surfaceNumbersRed;
+			texNum = texNumbersRed;
 			break;
 		default:
-			numSurface = surfaceNumbersRed;
+			texNum = texNumbersRed;
 			break;
 	}
 	uint tmpscore = displayScore < 0 ? displayScore * -1 : displayScore;
@@ -239,7 +244,6 @@ void Game::renderScore(int displayScore,int targetX,int targetY, RenderDirection
 		targetX += numDigits(displayScore) * 11;
 	}
 	int i = 0;
-	auto texNumber = SDL_CreateTextureFromSurface(renderer, numSurface);
 
 	do {
 		SDL_Rect targetRect{};
@@ -262,9 +266,8 @@ void Game::renderScore(int displayScore,int targetX,int targetY, RenderDirection
 		srcRect.y = 0;
 		srcRect.w = 3;
 		srcRect.h = 5;
-		SDL_RenderCopy(renderer, texNumber, &srcRect, &targetRect);
+		SDL_RenderCopy(renderer, texNum, &srcRect, &targetRect);
 	} while (tmpscore > 0);
-	SDL_DestroyTexture(texNumber);
 
 }
 
