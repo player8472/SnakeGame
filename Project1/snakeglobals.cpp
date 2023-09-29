@@ -10,3 +10,4 @@ int numDigits(int number)
     }
     return digits;
 }
+

@@ -161,6 +161,7 @@
     </Image>
     <Image Include="res\numbers_green.png" />
     <Image Include="res\numbers_red.png" />
+    <Image Include="res\txt.png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Project1.rc" />

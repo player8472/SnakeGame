@@ -66,6 +66,9 @@
     <Image Include="res\numbers_red.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\txt.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Project1.rc">

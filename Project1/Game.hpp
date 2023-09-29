@@ -22,6 +22,7 @@ struct positionedtexture {
 };
 
 enum RenderDirection{LEFT_TO_RIGHT,RIGHT_TO_LEFT};
+enum DefinedPosition{LEFT,RIGHT,CENTRAL};
 
 class Game
 {
@@ -47,6 +48,7 @@ private:
 	SDL_Texture* texGameOver;
 	SDL_Texture* texNumbersRed;
 	SDL_Texture* texNumbersGreen;
+	SDL_Texture* texTxt;
 
 
 	uint count=0;
@@ -65,6 +67,8 @@ private:
 	std::vector<positionedtexture> textures;
 	void handleKeyPress(SDL_KeyboardEvent* key);
 	void renderScore(int displayScore, int targetX, int targetY, RenderDirection direction, NumberRenderColors color);
+	void renderString(std::string str, int posx, int posy, DefinedPosition pos, int sizeFactor);
+	SDL_Rect* LetterToTextRect(char c);
 	Snake* snake;
 
 	void createTextures();

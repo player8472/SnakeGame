@@ -4,7 +4,6 @@ bool Game::running()
 {
 	return isRunning;
 }
-
 Game::Game(const char* Title, int xpos, int ypos, int width, int height, bool fullscreen)
 {
 	this->width = width;
@@ -43,6 +42,13 @@ Game::Game(const char* Title, int xpos, int ypos, int width, int height, bool fu
 	texGameOver = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_GAME_OVER));
 	texNumbersGreen = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_NUMBERS_GREEN));
 	texNumbersRed = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_NUMBERS_RED));
+	texTxt = SDL_CreateTextureFromSurface(renderer, IMG_Load(RES_TXT));
+	/* txt 
+	CharWidth: 15
+	CharHeight: 20+++
+
+	*/
+
 
 
 
@@ -58,6 +64,7 @@ Game::~Game()
 	SDL_DestroyTexture(texGameOver);
 	SDL_DestroyTexture(texNumbersGreen);
 	SDL_DestroyTexture(texNumbersRed);
+	SDL_DestroyTexture(texTxt);
 
 }
 
@@ -216,6 +223,10 @@ void Game::render()
 		targetRect.w = 236;
 		targetRect.h = 236;
 		SDL_RenderCopy(renderer, texGameOver, NULL, &targetRect);
+		//SDL_Rect tmprect{ 20,20,20,20 };
+		//targetRect.w = 40;
+		//targetRect.h = 40;
+		//SDL_RenderCopy(renderer, texTxt,&tmprect , &targetRect);
 	}
 		
 
@@ -271,6 +282,81 @@ void Game::renderScore(int displayScore,int targetX,int targetY, RenderDirection
 
 }
 
+void Game::renderString(std::string str, int posx, int posy, DefinedPosition pos,int sizeFactor)
+{
+	int startposx = posx;
+	int startposy = posy;
+	switch (pos) {
+	case RIGHT:
+		startposx -= str.length() * 20*sizeFactor;
+		break;
+	case CENTRAL:
+		startposx -= str.length() * 10 * sizeFactor;
+		break;
+	}
+
+}
+
+SDL_Rect* Game::LetterToTextRect(char c)
+{
+	SDL_Rect RetRect{};
+	RetRect.w = 20;
+	RetRect.h = 20;
+	switch (c) {
+	case 'a':
+		RetRect.x = 3*20;
+		RetRect.y = 2*20;
+		break;
+	case 'e':
+		RetRect.x = 7 * 20;
+		RetRect.y = 2 * 20;
+		break;
+	case 'f':
+		RetRect.x = 8 * 20;
+		RetRect.y = 2 * 20;
+		break;
+	case 'g':
+		RetRect.x = 9 * 20;
+		RetRect.y = 2 * 20;
+		break;
+	case 'm':
+		RetRect.x = 0 * 20;
+		RetRect.y = 3 * 20;
+		break;
+	case 'n':
+		RetRect.x = 1 * 20;
+		RetRect.y = 3 * 20;
+		break;
+	case 'o':
+		RetRect.x = 2 * 20;
+		RetRect.y = 3 * 20;
+		break;
+	case 'p':
+		RetRect.x = 3 * 20;
+		RetRect.y = 3 * 20;
+		break;
+	case 'r':
+		RetRect.x = 5 * 20;
+		RetRect.y = 3 * 20;
+		break;
+	case 's':
+		RetRect.x = 2 * 20;
+		RetRect.y = 6 * 20;
+		break;
+	case 'w':
+		RetRect.x = 2 * 20;
+		RetRect.y = 9 * 20;
+		break;
+	case ' ':
+	default:
+		RetRect.x = 0;
+		RetRect.y = 0;
+		break;
+
+	}
+	return &RetRect;
+}
+
 void Game::clean()
 {
 	SDL_DestroyWindow(window);
@@ -278,3 +364,4 @@ void Game::clean()
 	SDL_Quit();
 	std::cout << "Game cleaned";
 }
+
